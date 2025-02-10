@@ -1,5 +1,5 @@
-GET /rest/system/config
-=======================
+GET /rest/system/config (DEPRECATED)
+====================================
 
 .. deprecated:: v1.12.0
    This endpoint still works as before but is deprecated. Use :ref:`rest-config`
@@ -144,7 +144,6 @@ Returns the current configuration.
 	"urURL": "https://data.syncthing.net/newdata",
 	"urPostInsecurely": false,
 	"urInitialDelayS": 1800,
-	"restartOnWakeup": true,
 	"autoUpgradeIntervalH": 12,
 	"upgradeToPreReleases": false,
 	"keepTemporariesH": 24,

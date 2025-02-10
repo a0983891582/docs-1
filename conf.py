@@ -62,10 +62,19 @@ copyright = u'2014-2019, The Syncthing Authors'
 # built documents.
 #
 # The full version, including alpha/beta/rc tags.
+
+release = 'v1'
 try:
+    release = open('RELEASE', 'r').read().strip()
+except FileNotFoundError:
     release = os.popen('git describe --tags --long --always').read().strip()
-except Exception:
-    release = 'v1'
+
+_git_tag = ''
+try:
+    _git_tag = open('TAG', 'r').read().strip()
+except FileNotFoundError:
+    _git_tag = os.popen('git describe --tags --exact-match').read().strip()
+
 # The short X.Y version.
 version = release.partition('-')[0]
 
@@ -81,7 +90,7 @@ version = release.partition('-')[0]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ['_build', 'draft', 'README.rst', 'users/faq-parts']
+exclude_patterns = ['_build', '_syncthing', 'draft', 'README.rst', 'users/faq-parts']
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.
@@ -112,9 +121,9 @@ todo_include_todos = True
 
 # Configure external links.
 extlinks = {
-    'issue': ('https://github.com/syncthing/syncthing/issues/%s', 'issue #'),
-    'user': ('https://github.com/%s', '@'),
-    'commit': ('https://github.com/syncthing/syncthing/commit/%s', ''),
+    'issue': ('https://github.com/syncthing/syncthing/issues/%s', 'issue #%s'),
+    'user': ('https://github.com/%s', '@%s'),
+    'commit': ('https://github.com/syncthing/syncthing/commit/%s', None),
 }
 
 # -- Options for HTML output ----------------------------------------------
@@ -148,7 +157,10 @@ html_theme_path = ['_themes']
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
-#html_title = None
+if version == _git_tag:
+    html_title = f'{project} {version} documentation'
+else:
+    html_title = f'{project} documentation'
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 #html_short_title = None
@@ -224,6 +236,7 @@ html_show_copyright = False
 
 # Include JavaScript files with custom functionality
 html_js_files = [
+    'jquery-3.7.1.min.js',
     'version_redirect.js',
 ]
 

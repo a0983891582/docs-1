@@ -15,29 +15,23 @@ GUI Wrappers
 Cross-platform
 ~~~~~~~~~~~~~~
 
-- `syncthingtray <https://github.com/Martchus/syncthingtray>`__
+- `Syncthing Tray <https://martchus.github.io/syncthingtray>`__
 
 Android
 ~~~~~~~
 
-- `syncthing-android <https://github.com/syncthing/syncthing-android>`_
-
-  A wrapper app for the Syncthing binary.
-
 - `Syncthing-Fork <https://github.com/catfriend1/syncthing-android>`_
 
-  An alternative wrapper app for the Syncthing binary with extended
-  functionality.
+  An Android app for the Syncthing binary with extended functionality.
 
 .. _contrib-windows:
 
 Windows
 ~~~~~~~
 
-- `SyncTrayzor <https://github.com/canton7/SyncTrayzor>`_
+We currently don't have any actively updated Windows-specific GUI wrappers here.
 
-  Windows host for Syncthing.  Installer, auto-start, built-in browser, tray
-  icon, and more.
+.. seealso:: :ref:`Cross-platform GUI Wrappers <contrib-all>`.
 
 macOS
 ~~~~~
@@ -52,15 +46,28 @@ Linux
 
 - `Syncthing Icon <https://extensions.gnome.org/extension/989/syncthing-icon/>`_
 
-  A GNOME Shell extension displaying a Syncthing status icon in the top bar.
+  GNOME Shell extension: A Syncthing status icon in the top bar.
 
 - `Syncthing Indicator <https://extensions.gnome.org/extension/1070/syncthing-indicator/>`_
 
-  A GNOME Shell indicator for starting, monitoring and controlling the Syncthing daemon using systemd.
+  GNOME Shell extension: A Syncthing indicator for starting, monitoring and controlling the Syncthing daemon using systemd.
+
+- `Syncthing Toggle <https://extensions.gnome.org/extension/7180/syncthing-toggle/>`_
+
+  GNOME Shell extension: A quick setting for turning on and off the Syncthing systemd service and opening the Web GUI.
+
+- `SyncThingy <https://github.com/zocker-160/SyncThingy>`_
+
+  Simple tray indicator written in C++ targeted at Flatpak users.
 
 - `syncthing-quick-status <https://github.com/serl/syncthing-quick-status>`_
 
   Small bash application with minimal dependencies, for a simple colorful representation of the current status.
+  
+- `steamdeck-decky-syncthing  <https://github.com/theCapypara/steamdeck-decky-syncthing>`_
+
+  A Steam Deck (Decky Loader) plugin for controlling Syncthing from the Steam Big Picture / Steam Deck UI.
+
 
 Command Line Tools
 ------------------
@@ -69,6 +76,17 @@ Command Line Tools
 
   Syncthing Cli - a simple command line tool for getting status and performing basic operations from
   the shell / terminal without need of a web browser.
+
+- `syncthing-graph <https://gitlab.com/andrea-trentini/syncthing-graph>`_
+
+  Very simple graph (dot format) generator for Syncthing ``config.xml``.
+
+- `syncthing-map <https://github.com/wsw70/syncthing-map>`_
+
+  A cross-platform utility to map Syncthing devices and shared folders.
+  Generates a visual representation of the relationships between several devices
+  and their respective folders, including special folder types (send-only,
+  receive-only).  Requires each device's XML configuration file as input.
 
 
 Packages and Bundlings
@@ -86,6 +104,18 @@ Cross-platform
   Windows 10 (build 1803) or later ::
 
     > curl.exe -A MS https://webinstall.dev/syncthing | powershell
+
+.. _contrib-packages-windows:
+
+Windows
+~~~~~~~
+
+- `Syncthing Windows Setup <https://github.com/Bill-Stewart/SyncthingWindowsSetup>`_
+
+  A lightweight yet full-featured Windows installer built using Inno Setup.  Supports both
+  admin and regular user installation, auto-start, firewall integration as well as silent
+  installation.
+
 
 Debian / Ubuntu
 ~~~~~~~~~~~~~~~
@@ -108,7 +138,7 @@ ArchLinux
 
 - Official Community Repository: `syncthing <https://archlinux.org/packages/?name=syncthing>`__
 
-- Arch User Repository: `syncthing-discosrv <https://aur.archlinux.org/packages/syncthing-discosrv>`__ and `syncthingtray <https://aur.archlinux.org/packages/syncthingtray>`__
+- Arch User Repository: `syncthingtray <https://aur.archlinux.org/packages/syncthingtray>`__
 
 Docker
 ~~~~~~
@@ -157,7 +187,7 @@ Official ports: `syncthing <https://cvsweb.openbsd.org/cgi-bin/cvsweb/ports/net/
 OpenSUSE
 ~~~~~~~~
 
-Official packages: `syncthing <https://software.opensuse.org/package/syncthing>`__ and `syncthingtray <https://software.opensuse.org/package/syncthingtray>`__
+Official packages: `syncthing <https://software.opensuse.org/package/syncthing>`__ and `qsyncthingtray <https://software.opensuse.org/package/qsyncthingtray>`__
 
 Synology NAS (DSM)
 ~~~~~~~~~~~~~~~~~~
@@ -171,8 +201,9 @@ Synology NAS (DSM)
 QNAP NAS (QTS)
 ~~~~~~~~~~~~~~
 
-`Syncthing QPKG <https://qnapclub.eu/en/qpkg/692>`__ (Qnap
+`Syncthing QPKG <https://www.myqnap.org/product/syncthing/>`__ (Qnap
 Package) available for ALL models x86, x86\_64, Arm (all including new models).
+Syncthing running as root <https://www.myqnap.org/product/syncthing-run-as-root/>
 
 RockStor
 ~~~~~~~~
@@ -212,6 +243,10 @@ Configuration management
 - `puppet-syncthing <https://github.com/whefter/puppet-syncthing>`_
 - `ansible-syncthing <https://github.com/le9i0nx/ansible-syncthing>`_
 - Command line interface: `syncthingmanager <https://github.com/classicsc/syncthingmanager>`_
+- `syncthing-configd <https://github.com/kastelo/syncthing-configd>`_
+
+  A daemon that automatically manages certain aspects of the Syncthing configuration, such
+  as automatically accepting or removing devices / folders based on patterns.
 
 Monitoring
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -237,8 +272,11 @@ Older, Possibly Unmaintained
    these and you have revived the project, please update this page
    accordingly.
 
+- `syncthing-android <https://github.com/syncthing/syncthing-android>`_ (Archived on 2024-12-03)
+- `SyncTrayzor <https://github.com/canton7/SyncTrayzor>`_
 - `a-sync <https://github.com/davide-imbriaco/a-sync>`_
-- `Syncthing-GTK <https://github.com/kozec/syncthing-gtk>`_
+- `syncthing-tray-gtk3 <https://github.com/abdeoliveira/syncthing-tray-gtk3>`_ (Archived as of 2023-12-29)
+- `Syncthing-GTK <https://github.com/syncthing-gtk/syncthing-gtk>`_ (Fork from `Kozec <https://github.com/kozec/syncthing-gtk>`_)
 -  https://github.com/syncthing/syncthing-lite
 -  https://github.com/sieren/QSyncthingTray
 -  https://github.com/akissa/pysyncthing

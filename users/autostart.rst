@@ -3,9 +3,9 @@ Starting Syncthing Automatically
 
 Jump to configuration for your system:
 
-- `Windows <#windows>`__
-- `macOS <#macos>`__
-- `Linux <#linux>`__
+- `Windows`_
+- `macOS`_
+- `Linux`_
 
 
 Windows
@@ -187,7 +187,8 @@ an option to start the program automatically, and a more polished user
 experience (e.g. by behaving as a "proper" Windows application, rather
 than forcing you to start a Web browser to interact with Syncthing).
 
-.. seealso:: :ref:`Windows GUI Wrappers <contrib-windows>`, :ref:`Cross-platform GUI Wrappers <contrib-all>`.
+.. seealso:: :ref:`Windows GUI Wrappers <contrib-windows>`, :ref:`Cross-platform GUI
+  Wrappers <contrib-all>`, :ref:`Windows Packages <contrib-packages-windows>`.
 
 .. _autostart-windows-service:
 
@@ -252,7 +253,7 @@ by a sysadmin who knows enough to understand the security implications.
 #. Connect to the Syncthing UI, enable HTTPS, and set a secure username and password.
 
 macOS
---------
+-----
 
 Using `homebrew <https://brew.sh>`__
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -318,7 +319,7 @@ Go to ``/etc/supervisor/conf.d/`` and create a new file named ``syncthing.conf``
     autorestart = True
     directory = /home/<USERNAME>/
     user = <USERNAME>
-    command = /usr/bin/syncthing --no-browser --home="/home/<USERNAME>/.config/syncthing"
+    command = /usr/bin/syncthing --no-browser
     environment = STNORESTART="1", HOME="/home/<USERNAME>"
 
 Reload Supervisord::
@@ -375,7 +376,7 @@ How to set up a system service
 
 #. Create the user who should run the service, or choose an existing one.
 #. (Skip if your distribution package already installs these files, see above.)
-   From git location mentioned above copy the ``Syncthing/etc/linux-systemd/system/syncthing@.service`` file into the
+   From `git location <https://github.com/syncthing/syncthing/raw/main/etc/linux-systemd/system/>`__ copy the ``syncthing@.service`` file into the
    `load path of the system instance
    <https://www.freedesktop.org/software/systemd/man/systemd.unit.html#Unit%20File%20Load%20Path>`__.
 #. Enable and start the service. Replace "myuser" with the actual Syncthing
@@ -390,7 +391,7 @@ How to set up a user service
 #. Create the user who should run the service, or choose an existing
    one. *Probably this will be your own user account.*
 #. (Skip if your distribution package already installs these files, see above.)
-   Copy the ``Syncthing/etc/linux-systemd/user/syncthing.service`` file into the `load path
+   From `git location <https://github.com/syncthing/syncthing/raw/main/etc/linux-systemd/user/>`__ copy the ``syncthing.service`` file into the `load path
    of the user instance
    <https://www.freedesktop.org/software/systemd/man/systemd.unit.html#Unit%20File%20Load%20Path>`__.
    To do this without root privileges you can just use this folder under your
@@ -403,6 +404,13 @@ How to set up a user service
    the change described in `Ubuntu bug 1734290 <https://bugs.launchpad.net/ecryptfs/+bug/1734290>`__.
    Otherwise the user service will not start, because by default, systemd checks for user
    services before your home directory has been decrypted.
+
+Automatic start-up of systemd user instances at boot (before login) is possible
+through systemd's "lingering" function, if a system service cannot be used
+instead.  Refer to the `enable-linger`_ command of ``loginctl`` to allow this
+for a particular user.
+
+.. _enable-linger: https://www.freedesktop.org/software/systemd/man/loginctl.html#enable-linger%20USER%E2%80%A6
 
 Checking the service status
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -431,6 +439,8 @@ To see the logs for the user service::
 
     journalctl -e --user-unit=syncthing.service
 
+.. _autostart-systemd-permissions:
+
 Permissions
 ^^^^^^^^^^^
 
@@ -438,6 +448,15 @@ If you enabled the ``Ignore Permissions`` option in the Syncthing client's
 folder settings, then you will also need to add the line ``UMask=0002`` (or any
 other `umask setting <https://www.tech-faq.com/umask.html>`_ you like) in the
 ``[Service]`` section of the ``syncthing@.service`` file.
+
+For the :doc:`/advanced/folder-sync-ownership` option to work, you can
+grant extra capabilities to the service via the systemd unit file.
+Add the following snippet to the service file (commented out in the
+provided template).  To ensure smooth upgrades, keeping it in an
+override file using ``systemctl edit ...`` is advised::
+
+    [Service]
+    AmbientCapabilities=CAP_CHOWN CAP_FOWNER
 
 Debugging
 ^^^^^^^^^

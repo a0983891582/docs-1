@@ -49,6 +49,12 @@ Waiting to Clean
 Cleaning Versions
 	while removing obsolete files from the .stversions folder.
 
+Local Additions
+	when locally added or modified items are present in a receive-only
+	folder, thus not synced to remote machines.  The red button "Revert
+	Local Changes" will revert and delete all local changes to the state
+	advertised by remote devices.
+
 Among the folder details, you can see the current "Global State" and
 "Local State" summaries, as well as the amount of "Out of Sync" data if
 the folder state is not up to date.
@@ -86,7 +92,7 @@ Use the Syncthing Web interface. Click the "Add Folder" button which
 will bring up a dialogue with the following options:
 
 Folder Label
-	should be set to something descriptive. This label will initially be
+	should be set to something descriptive. This label will initially
 	be shared with remote devices, but can be changed on each device, as
 	desired.
 

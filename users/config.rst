@@ -8,13 +8,27 @@ Synopsis
 
 ::
 
-    $HOME/.config/syncthing
+    $XDG_STATE_HOME/syncthing
+    $HOME/.local/state/syncthing
     $HOME/Library/Application Support/Syncthing
     %LOCALAPPDATA%\Syncthing
 
 
+.. _config-locations:
+
 Description
 -----------
+
+.. versionchanged:: 1.27.0
+
+    The default location of the configuration and database directory on
+    Unix-like systems was changed to ``$XDG_STATE_HOME/syncthing`` or
+    ``$HOME/.local/state/syncthing``. Previously the default config location
+    was ``$XDG_CONFIG_HOME/syncthing`` or ``$HOME/.config/syncthing``. The
+    database directory was previously ``$HOME/.config/syncthing`` or, if the
+    environment variable was set, ``$XDG_DATA_HOME/syncthing``. Existing
+    installations may still use these directories instead of the newer
+    defaults.
 
 .. versionadded:: 1.5.0
 
@@ -22,12 +36,15 @@ Description
     always located in the same directory as the config.
 
 Syncthing uses a single directory to store configuration and crypto keys.
-Syncthing also has a database, which is often stored in this directory too.
-The config location defaults to ``$HOME/.config/syncthing``
-(Unix-like), ``$HOME/Library/Application Support/Syncthing`` (Mac),
-or ``%LOCALAPPDATA%\Syncthing`` (Windows). It can be changed at runtime
-using the ``--config`` flag. In this directory the following files are
-located:
+Syncthing also keeps an index database with file metadata which is by
+default stored in the same directory, though this can be overridden.
+
+The location defaults to ``$XDG_STATE_HOME/syncthing`` or
+``$HOME/.local/state/syncthing`` (Unix-like), ``$HOME/Library/Application
+Support/Syncthing`` (Mac), or ``%LOCALAPPDATA%\Syncthing`` (Windows). It can
+be changed at runtime using the ``--config`` or ``--home`` flags or the
+corresponding environment variables (``$STCONFDIR`` or ``STHOMEDIR``). The
+following files are located in this directory:
 
 :file:`config.xml`
     The configuration file, in XML format.
@@ -40,27 +57,24 @@ located:
     The certificate and key for HTTPS GUI connections. These may be replaced
     with a custom certificate for HTTPS as desired.
 
-:file:`csrftokens.txt`
-    A list of recently issued CSRF tokens (for protection against browser cross
-    site request forgery).
+The database is by default stored in the same directory as the config, but
+the location may be overridden by the ``--data`` or ``--home`` flags or the
+corresponding environment variables (``$STDATADIR`` or ``STHOMEDIR``).
 
-The database is stored either in the same directory as the config (usually the
-default), but may also be located in one of the following directories (Unix-like 
-platforms only):
-
-* If a database exists in the old default location, that location is
-  still used.
-* If ``$XDG_DATA_HOME`` is set, use ``$XDG_DATA_HOME/syncthing``.
-* If ``~/.local/share/syncthing`` exists, use that location.
-* Use the old default location (same as config).
-
-The location of the database can be changed using the ``--data`` flag. The
-``--home`` flag sets both config and database locations at the same time.
-The database contains the following files:
+The database directory contains the following files, among others:
 
 :file:`index-{*}.db`
     A directory holding the database with metadata and hashes of the files
     currently on disk and available from peers.
+
+:file:`syncthing.log`
+    Log output, on some systems.
+
+:file:`audit-{*}.log`
+    Audit log data, when enabled.
+
+:file:`panic-{*}.log`
+    Crash log data, when required.
 
 
 Config File Format
@@ -77,8 +91,8 @@ The following shows an example of a default configuration file (IDs will differ)
 
 .. code-block:: xml
 
-    <configuration version="35">
-        <folder id="default" label="Default Folder" path="/Users/jb/Sync/" type="sendreceive" rescanIntervalS="3600" fsWatcherEnabled="true" fsWatcherDelayS="10" ignorePerms="false" autoNormalize="true">
+    <configuration version="37">
+        <folder id="default" label="Default Folder" path="/Users/jb/Sync/" type="sendreceive" rescanIntervalS="3600" fsWatcherEnabled="true" fsWatcherDelayS="10" fsWatcherTimeoutS="0" ignorePerms="false" autoNormalize="true">
             <filesystemType>basic</filesystemType>
             <device id="S7UKX27-GI7ZTXS-GC6RKUA-7AJGZ44-C6NAYEB-HSKTJQK-KJHU2NO-CWV7EQW" introducedBy="">
                 <encryptionPassword></encryptionPassword>
@@ -110,6 +124,10 @@ The following shows an example of a default configuration file (IDs will differ)
             <copyRangeMethod>standard</copyRangeMethod>
             <caseSensitiveFS>false</caseSensitiveFS>
             <junctionsAsDirs>false</junctionsAsDirs>
+            <syncOwnership>false</syncOwnership>
+            <sendOwnership>false</sendOwnership>
+            <syncXattrs>false</syncXattrs>
+            <sendXattrs>false</sendXattrs>
         </folder>
         <device id="S7UKX27-GI7ZTXS-GC6RKUA-7AJGZ44-C6NAYEB-HSKTJQK-KJHU2NO-CWV7EQW" name="syno" compression="metadata" introducer="false" skipIntroductionRemovals="false" introducedBy="">
             <address>dynamic</address>
@@ -151,7 +169,6 @@ The following shows an example of a default configuration file (IDs will differ)
             <urURL>https://data.syncthing.net/newdata</urURL>
             <urPostInsecurely>false</urPostInsecurely>
             <urInitialDelayS>1800</urInitialDelayS>
-            <restartOnWakeup>true</restartOnWakeup>
             <autoUpgradeIntervalH>12</autoUpgradeIntervalH>
             <upgradeToPreReleases>false</upgradeToPreReleases>
             <keepTemporariesH>24</keepTemporariesH>
@@ -181,7 +198,7 @@ The following shows an example of a default configuration file (IDs will differ)
         </options>
         <remoteIgnoredDevice time="2022-01-09T20:02:01Z" id="5SYI2FS-LW6YAXI-JJDYETS-NDBBPIO-256MWBO-XDPXWVG-24QPUM4-PDW4UQU" name="bugger" address="192.168.0.20:22000"></remoteIgnoredDevice>
         <defaults>
-            <folder id="" label="" path="~" type="sendreceive" rescanIntervalS="3600" fsWatcherEnabled="true" fsWatcherDelayS="10" ignorePerms="false" autoNormalize="true">
+            <folder id="" label="" path="~" type="sendreceive" rescanIntervalS="3600" fsWatcherEnabled="true" fsWatcherDelayS="10" fsWatcherTimeoutS="0" ignorePerms="false" autoNormalize="true">
                 <filesystemType>basic</filesystemType>
                 <device id="S7UKX27-GI7ZTXS-GC6RKUA-7AJGZ44-C6NAYEB-HSKTJQK-KJHU2NO-CWV7EQW" introducedBy="">
                     <encryptionPassword></encryptionPassword>
@@ -213,6 +230,10 @@ The following shows an example of a default configuration file (IDs will differ)
                 <copyRangeMethod>standard</copyRangeMethod>
                 <caseSensitiveFS>false</caseSensitiveFS>
                 <junctionsAsDirs>false</junctionsAsDirs>
+                <syncOwnership>false</syncOwnership>
+                <sendOwnership>false</sendOwnership>
+                <syncXattrs>false</syncXattrs>
+                <sendXattrs>false</sendXattrs>
             </folder>
             <device id="" compression="metadata" introducer="false" skipIntroductionRemovals="false" introducedBy="">
                 <address>dynamic</address>
@@ -233,7 +254,7 @@ Configuration Element
 
 .. code-block:: xml
 
-    <configuration version="35">
+    <configuration version="37">
         <folder></folder>
         <device></device>
         <gui></gui>
@@ -265,7 +286,7 @@ Folder Element
 
 .. code-block:: xml
 
-    <folder id="default" label="Default Folder" path="/Users/jb/Sync/" type="sendreceive" rescanIntervalS="3600" fsWatcherEnabled="true" fsWatcherDelayS="10" ignorePerms="false" autoNormalize="true">
+    <folder id="default" label="Default Folder" path="/Users/jb/Sync/" type="sendreceive" rescanIntervalS="3600" fsWatcherEnabled="true" fsWatcherDelayS="10" fsWatcherTimeoutS="0" ignorePerms="false" autoNormalize="true">
         <filesystemType>basic</filesystemType>
         <device id="S7UKX27-GI7ZTXS-GC6RKUA-7AJGZ44-C6NAYEB-HSKTJQK-KJHU2NO-CWV7EQW" introducedBy="">
             <encryptionPassword></encryptionPassword>
@@ -297,6 +318,10 @@ Folder Element
         <copyRangeMethod>standard</copyRangeMethod>
         <caseSensitiveFS>false</caseSensitiveFS>
         <junctionsAsDirs>false</junctionsAsDirs>
+        <syncOwnership>false</syncOwnership>
+        <sendOwnership>false</sendOwnership>
+        <syncXattrs>false</syncXattrs>
+        <sendXattrs>false</sendXattrs>
     </folder>
 
 One or more ``folder`` elements must be present in the file. Each element
@@ -361,6 +386,12 @@ element:
 
     The duration during which changes detected are accumulated, before a scan is
     scheduled (only takes effect if :opt:`fsWatcherEnabled` is set to ``true``).
+
+.. option:: folder.fsWatcherTimeoutS
+
+    The maximum delay before a scan is triggered when a file is continuously
+    changing. If unset or zero a default value is calculated based on
+    :opt:`fsWatcherDelayS`.
 
 .. option:: folder.ignorePerms
 
@@ -570,6 +601,27 @@ The following child elements may exist:
     NTFS directory junctions are treated as ordinary directories, if this is set
     to ``true``.
 
+.. option:: folder.syncOwnership
+
+    File and directory ownership is synced when this is set to ``true``. See
+    :doc:`/advanced/folder-sync-ownership` for more information.
+
+.. option:: folder.sendOwnership
+
+    File and directory ownership information is scanned when this is set to
+    ``true``. See :doc:`/advanced/folder-send-ownership` for more information.
+
+.. option:: folder.syncXattrs
+
+    File and directory extended attributes are synced when this is set to
+    ``true``. See :doc:`/advanced/folder-sync-xattrs` for more information.
+
+.. option:: folder.sendXattrs
+
+    File and directory extended attributes are scanned and sent to other
+    devices when this is set to ``true``. See
+    :doc:`/advanced/folder-send-xattrs` for more information.
+
 
 Device Element
 --------------
@@ -586,6 +638,7 @@ Device Element
         <maxRequestKiB>0</maxRequestKiB>
         <untrusted>false</untrusted>
         <remoteGUIPort>0</remoteGUIPort>
+        <numConnections>0</numConnections>
     </device>
     <device id="2CYF2WQ-AKZO2QZ-JAKWLYD-AGHMQUM-BGXUOIS-GYILW34-HJG3DUK-LRRYQAR" name="syno local" compression="metadata" introducer="true" skipIntroductionRemovals="false" introducedBy="">
         <address>tcp://192.0.2.1:22001</address>
@@ -597,6 +650,7 @@ Device Element
         <maxRequestKiB>65536</maxRequestKiB>
         <untrusted>false</untrusted>
         <remoteGUIPort>8384</remoteGUIPort>
+        <numConnections>0</numConnections>
     </device>
 
 One or more ``device`` elements must be present in the file. Each element
@@ -703,6 +757,8 @@ From the following child elements at least one ``address`` child must exist.
             <address>dynamic</address>
         </device>
 
+    In the GUI, multiple values are separated by commas.
+
 .. option:: device.paused
 
     True if synchronization with this devices is (temporarily) suspended.
@@ -712,7 +768,9 @@ From the following child elements at least one ``address`` child must exist.
 
     If given, this restricts connections to this device to only this network.
     The mechanism is described in detail in a :doc:`separate chapter
-    </advanced/device-allowednetworks>`).
+    </advanced/device-allowednetworks>`).  To configure multiple networks, you
+    can either: repeat ``<allowedNetwork>`` tags in the configuration file or
+    enter several networks separated by commas in the GUI.
 
 .. option:: device.autoAcceptFolders
 
@@ -740,6 +798,8 @@ From the following child elements at least one ``address`` child must exist.
     Contains the ID of the folder that should be ignored. This folder will
     always be skipped when advertised from the containing remote device,
     i.e. this will be logged, but there will be no dialog shown in the web GUI.
+    Multiple ignored folders are represented by repeated ``<ignoredFolder>``
+    tags in the configuration file.
 
 .. option:: device.maxRequestKiB
 
@@ -761,6 +821,11 @@ From the following child elements at least one ``address`` child must exist.
     device then needs an encryption password set, or must already be of the
     "receive encrypted" type locally.  Refer to the detailed explanation under
     :doc:`untrusted`.
+
+.. option:: device.numConnections
+
+    The number of connections to this device. See
+    :doc:`/advanced/device-numconnections` for more information.
 
 
 GUI Element
@@ -818,7 +883,7 @@ The following child elements may be present:
 
 .. option:: gui.unixSocketPermissions
 
-    When ``address`` is set to a UNIX socket location, set this to an octal value 
+    When ``address`` is set to a UNIX socket location, set this to an octal value
     to override the default permissions of the socket.
 
 .. option:: gui.user
@@ -863,6 +928,25 @@ The following child elements may be present:
 
     ``ldap``
         LDAP authentication. Requires ldap top level config section to be present.
+
+.. option:: gui.sendBasicAuthPrompt
+
+    .. versionadded:: 1.26.0
+
+    Prior to version 1.26.0 the GUI used HTTP Basic Authorization for login, but
+    starting in version 1.26.0 it uses an HTML form by default. Basic
+    Authorization is still supported when the ``Authorization`` request header
+    is present in a request, but some browsers don't send the header unless
+    prompted by a 401 response.
+
+    When this setting is enabled, the GUI will respond to unauthenticated
+    requests with a 401 response prompting for Basic Authorization, so that
+    ``https://user:pass@localhost`` style URLs continue to work in standard
+    browsers. Other clients that always send the ``Authorization`` request
+    header do not need this setting.
+
+    When this setting is disabled, the GUI will not send 401 responses so users
+    won't see browser popups prompting for username and password.
 
 
 LDAP Element
@@ -943,7 +1027,6 @@ Options Element
         <urURL>https://data.syncthing.net/newdata</urURL>
         <urPostInsecurely>false</urPostInsecurely>
         <urInitialDelayS>1800</urInitialDelayS>
-        <restartOnWakeup>true</restartOnWakeup>
         <autoUpgradeIntervalH>12</autoUpgradeIntervalH>
         <upgradeToPreReleases>false</upgradeToPreReleases>
         <keepTemporariesH>24</keepTemporariesH>
@@ -978,7 +1061,10 @@ The ``options`` element contains all other global configuration options.
     :aliases: options.listenAddresses
 
     The listen address for incoming sync connections. See
-    :ref:`listen-addresses` for the allowed syntax.
+    :ref:`listen-addresses` for the allowed syntax.  To configure multiple
+    addresses, you can either: repeat ``<listenAddress>`` tags in the
+    configuration file or enter several addresses separated by commas in the
+    GUI.
 
 .. option:: options.globalAnnounceServer
     :aliases: options.globalAnnounceServers
@@ -989,7 +1075,10 @@ The ``options`` element contains all other global configuration options.
     HTTPS URL. A number of options may be added as query options to the URL:
     ``insecure`` to prevent certificate validation (required for HTTP URLs)
     and ``id=<device ID>`` to perform certificate pinning. The device ID to
-    use is printed by the discovery server on startup.
+    use is printed by the discovery server on startup.  To configure multiple
+    servers, you can either: repeat ``<globalAnnounceServer>`` tags in the
+    configuration file or enter several servers separated by commas in the
+    GUI.
 
 .. option:: options.globalAnnounceEnabled
 
@@ -1081,11 +1170,6 @@ The ``options`` element contains all other global configuration options.
     The time to wait from startup for the first usage report to be sent. Allows
     the system to stabilize before reporting statistics.
 
-.. option:: options.restartOnWakeup
-
-    Whether to perform a restart of Syncthing when it is detected that we are
-    waking from sleep mode (i.e. an unfolding laptop).
-
 .. option:: options.autoUpgradeIntervalH
 
     Check for a newer version after this many hours. Set to ``0`` to disable
@@ -1110,7 +1194,9 @@ The ``options`` element contains all other global configuration options.
 .. option:: options.progressUpdateIntervalS
 
     How often in seconds the progress of ongoing downloads is made available to
-    the GUI.
+    the GUI. Set to ``-1`` to disable. Note that when disabled, the detailed
+    sync progress for Out of Sync Items which shows how much of each file has
+    been reused, copied, and downloaded will not work.
 
 .. option:: options.limitBandwidthInLan
 
@@ -1132,7 +1218,10 @@ The ``options`` element contains all other global configuration options.
 .. option:: options.alwaysLocalNet
     :aliases: options.alwaysLocalNets
 
-    Network that should be considered as local given in CIDR notation.
+    Network that should be considered as local given in CIDR notation.  To
+    configure multiple networks, you can either: repeat ``<alwaysLocalNet>``
+    tags in the configuration file or enter several networks separated by
+    commas in the GUI.
 
 .. option:: options.overwriteRemoteDeviceNamesOnConnect
 
@@ -1149,11 +1238,16 @@ The ``options`` element contains all other global configuration options.
     :aliases: options.unackedNotificationIDs
 
     ID of a notification to be displayed in the web GUI. Will be removed once
-    the user acknowledged it (e.g. an transition notice on an upgrade).
+    the user acknowledged it (e.g. a transition notice on an upgrade).  Multiple
+    IDs are represented by repeated ``<unackedNotificationID>`` tags in the
+    configuration file.
 
 .. option:: options.trafficClass
 
-    Specify a type of service (TOS)/traffic class of outgoing packets.
+    Specify an IPv4 type of service (TOS)/IPv6 traffic class for outgoing
+    packets. To specify a differentiated services code point (DSCP) the value
+    must be bit shifted to the left by two to take the two least significant
+    ECN bits into account.
 
 .. option:: options.stunServer
     :aliases: options.stunServers
@@ -1162,11 +1256,16 @@ The ``options`` element contains all other global configuration options.
     expanded to
     ``stun.callwithus.com:3478``, ``stun.counterpath.com:3478``,
     ``stun.counterpath.net:3478``, ``stun.ekiga.net:3478``,
-    ``stun.ideasip.com:3478``, ``stun.internetcalls.com:3478``,
-    ``stun.schlund.de:3478``, ``stun.sipgate.net:10000``,
+    ``stun.hitv.com:3478``, ``stun.ideasip.com:3478``,
+    ``stun.internetcalls.com:3478``, ``stun.miwifi.com:3478``,
+    ``stun.schlund.de:3478``,``stun.sipgate.net:10000``,
     ``stun.sipgate.net:3478``, ``stun.voip.aebc.com:3478``,
     ``stun.voiparound.com:3478``, ``stun.voipbuster.com:3478``,
     ``stun.voipstunt.com:3478`` and ``stun.xten.com:3478`` (this is the default).
+
+    To configure multiple servers, you can either: repeat ``<stunServer>`` tags
+    in the configuration file or enter several servers separated by commas in
+    the GUI.
 
 .. option:: options.stunKeepaliveStartS
 
@@ -1238,7 +1337,9 @@ The ``options`` element contains all other global configuration options.
     Feature flags are simple strings that, when added to the configuration, may
     unleash unfinished or still-in-development features to allow early user
     testing.  Any supported value will be separately announced with the feature,
-    so that regular users do not enable it by accident.
+    so that regular users do not enable it by accident.  To configure multiple
+    flags, you can either: repeat ``<featureFlag>`` tags in the configuration
+    file or enter several flags separated by commas in the GUI.
 
 .. option:: options.connectionLimitEnough
 
@@ -1266,7 +1367,7 @@ Defaults Element
 .. code-block:: xml
 
     <defaults>
-        <folder id="" label="" path="~" type="sendreceive" rescanIntervalS="3600" fsWatcherEnabled="true" fsWatcherDelayS="10" ignorePerms="false" autoNormalize="true">
+        <folder id="" label="" path="~" type="sendreceive" rescanIntervalS="3600" fsWatcherEnabled="true" fsWatcherDelayS="10" fsWatcherTimeoutS="0" ignorePerms="false" autoNormalize="true">
             <filesystemType>basic</filesystemType>
             <device id="S7UKX27-GI7ZTXS-GC6RKUA-7AJGZ44-C6NAYEB-HSKTJQK-KJHU2NO-CWV7EQW" introducedBy="">
                 <encryptionPassword></encryptionPassword>
@@ -1308,7 +1409,15 @@ Defaults Element
             <maxRequestKiB>0</maxRequestKiB>
             <untrusted>false</untrusted>
             <remoteGUIPort>0</remoteGUIPort>
+            <numConnections>0</numConnections>
         </device>
+        <ignores>
+            <line>!foo2</line>
+            <line>// comment</line>
+            <line>(?d).DS_Store</line>
+            <line>*2</line>
+            <line>qu*</line>
+        </ignores>
     </defaults>
 
 The ``defaults`` element describes a template for newly added device and folder
@@ -1335,16 +1444,27 @@ be present in the ``defaults`` element:
     Even sharing with other remote devices can be done in the template by
     including the appropriate :opt:`folder.device` element underneath.
 
+.. option:: defaults.ignores
+    :aliases: defaults.ignores.lines
+
+    .. versionadded:: 1.19.0
+
+    Template for the :ref:`ignore patterns <ignoring-files>` applied to new
+    folders.  These are copied to the ``.stignore`` file when a folder is
+    automatically accepted from a remote device.  The GUI uses them to pre-fill
+    the respective field when adding a new folder as well.  In XML, each pattern
+    line is represented as by a ``<line>`` element.
+
 
 .. _listen-addresses:
 
 Listen Addresses
 ^^^^^^^^^^^^^^^^
 
-The following address types are accepted in sync protocol listen addresses. 
-If you want Syncthing to listen on multiple addresses, you can either: add 
-multiple ``<listenAddress>`` tags in the configuration file or enter several
-addresses separated by commas in the GUI.
+The following address types are accepted in sync protocol listen addresses.
+If you want Syncthing to listen on multiple addresses, you can either: repeat
+``<listenAddress>`` tags in the configuration file or enter several addresses
+separated by commas in the GUI.
 
 Default listen addresses (``default``)
     This is equivalent to ``tcp://0.0.0.0:22000``, ``quic://0.0.0.0:22000``

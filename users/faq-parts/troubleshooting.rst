@@ -7,7 +7,9 @@ Where are the Syncthing logs?
 Syncthing logs to stdout by default. On Windows Syncthing by default also
 creates ``syncthing.log`` in Syncthing's home directory (run ``syncthing
 --paths`` to see where that is). The command line option ``--logfile`` can be
-used to specify a user-defined logfile.
+used to specify a user-defined logfile.  If you only have access to a running
+instance's GUI, check under the `Actions` - `About` menu item to see the used
+paths.
 
 If you're running a process manager like systemd, check there. If you're
 using a GUI wrapper integration, it may keep the logs for you.
@@ -103,13 +105,12 @@ My Syncthing database is corrupt
 --------------------------------
 
 This is almost always a result of bad RAM, storage device or other hardware.
-When the index database is found to be corrupt Syncthing cannot operate and
-will note this in the logs and exit. To overcome this delete the `database
-folder <https://docs.syncthing.net/users/config.html#description>`__ inside
-Syncthing's home directory and re-start Syncthing. It will then need to
-perform a full re-hashing of all shared folders. You should check your
-system in case the underlying cause is indeed faulty hardware which may put
-the system at risk of further data loss.
+When the index database is found to be corrupt Syncthing cannot operate and will
+note this in the logs and exit. To overcome this delete the :ref:`database
+folder <config-locations>` inside Syncthing's data directory and re-start
+Syncthing. It will then need to perform a full re-hashing of all shared
+folders. You should check your system in case the underlying cause is indeed
+faulty hardware which may put the system at risk of further data loss.
 
 
 Why do I see Syncthing twice in task manager?
@@ -126,8 +127,8 @@ How can I view the history of changes?
 The web GUI contains a ``Recent Changes`` button under the device list which
 displays changes since the last (re)start of Syncthing. With the ``--audit``
 option you can enable a persistent, detailed log of changes and most
-activities, which contains a ``JSON`` formatted  sequence of events in the
-``~/.config/syncthing/audit-_date_-_time_.log`` file.
+activities, which contains a JSON-formatted sequence of events in the
+``~/.local/state/syncthing/audit-_date_-_time_.log`` file.
 
 Does the audit log contain every change?
 ----------------------------------------
@@ -153,6 +154,41 @@ If you see outgoing connections to odd and unexpected addresses these are
 most likely connections to :ref:`relay servers <Relaying>`. Relay servers
 are run by volunteers all over the world. They usually listen on ports 443 or
 22067, though this is controlled by the user running it. You can compare the
-address you are concernced about with `the current list of active relays
+address you are concerned about with `the current list of active relays
 <https://relays.syncthing.net>`__. Relays do not and can not see the data
 transmitted via them.
+
+I am seeing the error message "folder marker missing". What do I do?
+--------------------------------------------------------------------
+
+Syncthing uses a specific marker usually called ``.stfolder`` to determine whether
+a folder is healthy. This is a safety check to ensure that your folder is properly
+readable and present on disk. For example, if you remove a USB drive from your computer
+or unmount a filesystem, then syncthing must know whether you have really deleted **all** of
+your files. Therefore, syncthing always checks that the ``.stfolder`` is present.
+
+When this error appears, syncthing assumes that the folder has encountered some type of error
+and will stop syncing it until the ``.stfolder`` reappears. Once that happens, all changes made
+to the folder locally will be synced (i.e. missing files will be considered deletions).
+
+- If you get this error message, check the folder in question on your storage. If you have
+  unmounted the folder (or a parent of it), you must remount it for syncthing to resume syncing
+  this folder.
+
+- If you have moved the folder, you must either move it back to its original location, or remove the
+  folder from within the syncthing UI and re-add it at its new location.
+
+- If the folder is present on disk, with all of its children files and directories, but the ``.stfolder``
+  is still missing:
+
+  It is possible that a file cleaning software has removed the ``.stfolder``. Some software
+  removes empty folders, and the ``.stfolder`` is often empty. This happens particularly often on Android.
+  To remediate, recreate the ``.stfolder`` and add a dummy file in it, or add an exception to your
+  cleaning software.
+
+If you are still unsure what has happened, you can remove the folder from within the syncthing UI and re-add it
+at the same location. This causes syncthing to attempt an automatic re-creation of the ``.stfolder``. Next,
+it will also reset the database state of this folder. It will be considered a "new" folder, meaning that its files
+will be merged with files from remote devices.
+
+Also see the :ref:`marker FAQ <marker-faq>` for more information about the folder marker.

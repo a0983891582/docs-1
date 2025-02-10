@@ -32,19 +32,23 @@ The following may be synchronized or not, depending:
 -  File permissions (when supported by file system; on Windows only the
    read only bit is synchronized)
 -  Symbolic links (synced, except on Windows, but never followed)
+-  File or directory owners and groups (when enabled)
+-  Extended attributes (when enabled)
+-  POSIX or NFS ACLs (as part of extended attributes)
 
 The following are *not* synchronized;
 
--  File or directory owners and Groups (not preserved)
 -  Directory modification times (not preserved)
 -  Hard links (followed, not preserved)
 -  Windows junctions (synced as ordinary directories; require enabling in
    :stconf:opt:`the configuration <folder.junctionsAsDirs>` on a per-folder
    basis)
--  Extended attributes, resource forks (not preserved)
--  Windows, POSIX or NFS ACLs (not preserved)
+-  Resource forks (not preserved)
+-  Windows ACLs (not preserved)
 -  Devices, FIFOs, and other specials (ignored)
 -  Sparse file sparseness (will become sparse, when supported by the OS & filesystem)
+-  Syncthing internal files and folders (e.g. ``.stfolder``, ``.stignore``,
+   ``.stversions``, :ref:`temporary files <temporary-files>`, etc.)
 
 Is synchronization fast?
 ------------------------
@@ -90,8 +94,15 @@ There are no plans by the current Syncthing team to officially support iOS in th
 iOS has significant restrictions on background processing that make it very hard to
 run Syncthing reliably and integrate it into the system.
 
-However, there is a commercial packaging of Syncthing for iOS that attempts to work within these limitations. [#mobiussync]_
+However, there is an open source app for iOS, incorporating Syncthing, that attempts to work within 
+these limitations. It provides a native UI and features for selective synchronization as well as
+on-demand access to files. Most Syncthing features are available, but the native UI is simplified 
+compared to the official client. [#synctrain]_
 
+There is also a commercial packaging of Syncthing. It provides access to all Syncthing functionalities 
+through the original UI. [#mobiussync]_
+
+.. [#synctrain] https://github.com/pixelspark/sushitrain
 .. [#mobiussync] https://www.mobiussync.com
 
 Should I keep my device IDs secret?

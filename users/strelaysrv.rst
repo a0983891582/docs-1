@@ -9,10 +9,10 @@ Synopsis
 ::
 
     strelaysrv [-debug] [-ext-address=<address>] [-global-rate=<bytes/s>] [-keys=<dir>] [-listen=<listen addr>]
-               [-message-timeout=<duration>] [-nat] [-nat-lease=<duration> [-nat-renewal=<duration>]
+               [-message-timeout=<duration>] [-nat] [-nat-lease=<duration>] [-nat-renewal=<duration>]
                [-nat-timeout=<duration>] [-network-timeout=<duration>] [-per-session-rate=<bytes/s>]
-               [-ping-interval=<duration>] [-pools=<pool addresses>] [-protocol=<string>] [-provided-by=<string>]
-               [-status-srv=<listen addr>]
+               [-ping-interval=<duration>] [-pools=<pool addresses>] [-pprof] [-protocol=<string>]
+               [-provided-by=<string>] [-status-srv=<listen addr>] [-token=<string>] [-version]
 
 Description
 -----------
@@ -89,6 +89,10 @@ Options
     "https://relays.syncthing.net/endpoint"). Blank to disable announcement to
     a pool, thereby remaining a private relay.
 
+.. cmdoption:: -pprof
+
+    Enable the built in profiling on the status server
+
 .. cmdoption:: -protocol=<string>
 
     Protocol used for listening. 'tcp' for IPv4 and IPv6, 'tcp4' for IPv4, 'tcp6' for IPv6 (default "tcp").
@@ -101,6 +105,14 @@ Options
 
     Listen address for status service (blank to disable) (default ":22070").
     Status service is used by the relay pool server UI for displaying stats (data transferred, number of clients, etc.)
+
+.. cmdoption:: -token=<string>
+    
+    Token to restrict access to the relay (optional). Disables joining any pools.
+
+.. cmdoption:: -version
+    
+    Show version
 
 Installing
 ~~~~~~~~~~
@@ -146,11 +158,11 @@ procedure for your operating system.
 Client configuration
 ~~~~~~~~~~~~~~~~~~~~
 
-Syncthing can be configured to use specific relay servers (exclusively of the public pool) by adding the required servers to the Sync Protocol Listen Address field, under Actions and Settings. The format is as follows:
+Syncthing can be configured to use specific relay servers (exclusively of the public pool) by adding the required servers to the Sync Protocol Listen Address field, under Actions and Settings. The format is as follows::
 
   relay://<host name|IP>[:port]/?id=<relay device ID>
 
-For example:
+For example::
 
   relay://private-relay-1.example.com:443/?id=ITZRNXE-YNROGBZ-HXTH5P7-VK5NYE5-QHRQGE2-7JQ6VNJ-KZUEDIU-5PPR5AM
 
@@ -168,7 +180,7 @@ there are a couple of approaches available to you.
 One option is to run the relay on port 22067, and use an ``iptables`` rule
 to forward traffic from port 443 to port 22067, for example::
 
-    iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 443 -j REDIRECT --to-port 22067
+    iptables -t nat -A PREROUTING -p tcp --dport 443 -j REDIRECT --to-port 22067
 
 Or, if you're using ``ufw``, add the following to ``/etc/ufw/before.rules``::
 
@@ -176,7 +188,7 @@ Or, if you're using ``ufw``, add the following to ``/etc/ufw/before.rules``::
     :PREROUTING ACCEPT [0:0]
     :POSTROUTING ACCEPT [0:0]
 
-    -A PREROUTING -i eth0 -p tcp --dport 443 -j REDIRECT --to-port 22067
+    -A PREROUTING -p tcp --dport 443 -j REDIRECT --to-port 22067
 
     COMMIT
 
@@ -204,6 +216,20 @@ Runtime ``iptables`` rules to allow access to the default ports::
     iptables -I INPUT -p tcp --dport 22070 -j ACCEPT
     
 Please consult Linux distribution documentation to persist firewall rules.
+
+Access control for private relays
+---------------------------------
+
+.. versionadded:: 1.22.1
+
+Private relays can be configured to only accept connections from peers in possession of a shared secret.
+To configure this use the ``-token`` option:
+
+$ strelaysrv -token=mySecretToken
+
+Then configure your Syncthing devices to send the token when joining the relay::
+
+  relay://<host name|IP>[:port]/?id=<relay device ID>&token=mySecretToken
 
 See Also
 --------

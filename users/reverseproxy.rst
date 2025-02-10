@@ -77,8 +77,9 @@ Caddy v2
 .. code-block:: none
 
     handle_path /syncthing/* {
-        uri strip_prefix /syncthing
-        reverse_proxy http://localhost:8384
+        reverse_proxy http://localhost:8384 {
+                header_up Host {upstream_hostport}
+        }
     }
 
 
